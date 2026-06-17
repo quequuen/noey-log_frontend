@@ -22,9 +22,14 @@ export default function WritePost({ onAddPost }: WritePostProps) {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '20px' }}>📝 새로운 개발 기록 남기기</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        
+        {/* 뒤로가기 버튼 */}
+        <button 
+            onClick={() => navigate('/')} 
+            className="mb-6 flex items-center gap-1 text-xl font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+        >
+            ←
+        </button>
         <div style={{ display: 'flex', gap: '10px' }}>
           <select 
             value={type} 

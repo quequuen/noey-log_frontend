@@ -10,14 +10,18 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // URL 파라미터 ID와 일치하는 글 찾기
   const post = posts.find(p => p.id === Number(id));
 
   if (!post) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px' }}>
-        <h3>글을 찾을 수 없습니다.</h3>
-        <button onClick={() => navigate('/')}>목록으로 가기</button>
+      <div className="text-center py-20 text-zinc-400">
+        <h3 className="text-lg font-bold mb-4">글을 찾을 수 없습니다.</h3>
+        <button 
+          onClick={() => navigate('/')}
+          className="px-4 py-2 bg-zinc-800 text-white rounded-md hover:bg-zinc-700 transition-colors cursor-pointer"
+        >
+          목록으로 가기
+        </button>
       </div>
     );
   }
@@ -25,32 +29,51 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
   const handleDelete = () => {
     if (window.confirm('정말 이 기록을 삭제하시겠습니까?')) {
       onDeletePost(post.id);
-      navigate('/'); // 삭제 후 홈으로 이동
+      navigate('/');
     }
   };
 
+  // 카테고리별 텍스트 색상 매핑 (MainDashboard와 통일)
+  const getBadgeColor = (type: string) => {
+    if (type === '회고') return 'text-sky-400';
+    if (type === '이슈 목록') return 'text-rose-400';
+    return 'text-emerald-400';
+  };
+
   return (
-    <div>
-      <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: '#0070f3', cursor: 'pointer', marginBottom: '20px', fontSize: '15px' }}>
-        ← 목록으로 돌아가기
+    <div className="w-full text-zinc-100">
+      {/* 뒤로가기 버튼 */}
+      <button 
+        onClick={() => navigate('/')} 
+        className="mb-6 flex items-center gap-1 text-xl font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+      >
+        ←
       </button>
 
-      <article style={{ borderTop: '2px solid #24292e', paddingTop: '20px' }}>
-        <span style={{ color: '#666', fontSize: '14px', fontWeight: 'bold' }}>{post.type}</span>
-        <h1 style={{ fontSize: '28px', margin: '8px 0 12px 0' }}>{post.title}</h1>
-        <p style={{ color: '#999', fontSize: '13px', marginBottom: '30px' }}>작성일: {post.date}</p>
+      {/* 본문 아티클 영역 */}
+      <article className="border-t border-zinc-800 pt-6">
+        <span className={`text-sm font-bold ${getBadgeColor(post.type)}`}>
+          {post.type}
+        </span>
+        <h1 className="text-3xl font-extrabold text-zinc-100 mt-2 mb-3 tracking-tight">
+          {post.title}
+        </h1>
+        <p className="text-xs text-zinc-500 mb-8">
+          작성일: {post.date}
+        </p>
         
-        {/* 가독성을 높인 본문 영역 */}
-        <div style={{ 
-          fontSize: '16px', lineHeight: '1.8', color: '#24292e', whiteSpace: 'pre-wrap', 
-          backgroundColor: '#f6f8fa', padding: '25px', borderRadius: '8px', fontFamily: 'monospace', minHeight: '200px' 
-        }}>
-          {post.content}
+        {/* 본문 상자 */}
+        <div className="text-base leading-relaxed text-black white-space-pre-wrap bg-zinc-100 border border-zinc-800 p-6 rounded-xl font-mono min-h-[250px] shadow-lg">
+            {post.content}
         </div>
       </article>
 
-      <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
-        <button onClick={handleDelete} style={{ padding: '8px 14px', backgroundColor: '#cb2431', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+      {/* 하단 제어 버튼 컴포넌트 */}
+      <div className="mt-8 flex justify-end">
+        <button 
+          onClick={handleDelete} 
+          className="px-4 py-2 text-sm font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 rounded-md hover:bg-rose-900/50 hover:text-rose-300 transition-all duration-200 cursor-pointer"
+        >
           기록 삭제하기
         </button>
       </div>

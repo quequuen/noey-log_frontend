@@ -1,6 +1,5 @@
-// 글 입력 폼 컴포넌트
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { NewPostInput, PostType } from '../types/post';
 
 interface PostFormProps {
@@ -8,9 +7,10 @@ interface PostFormProps {
 }
 
 export default function PostForm({ onAddPost }: PostFormProps) {
+  const navigate = useNavigate();
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
-  const [type, setType] = useState<PostType>('회고'); // 기본값 설정
+  const [type, setType] = useState<PostType>('회고');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,44 +19,62 @@ export default function PostForm({ onAddPost }: PostFormProps) {
     onAddPost({ title, content, type });
     setTitle('');
     setContent('');
+    navigate('/'); 
   };
 
   return (
-    <form onSubmit={handleSubmit} style={formStyle}>
-      <h3 style={{ margin: '0 0 10px 0' }}>📝 새로운 기록 추가</h3>
-      <div style={inputGroupStyle}>
-        <select 
-          value={type} 
-          onChange={(e) => setType(e.target.value as PostType)} 
-          style={selectStyle}
+    <div className="w-full max-w-2xl text-zinc-100">
+      {/* 상단 타이틀 및 취소 버튼 */}
+      <div className="flex justify-between items-center mb-6">
+        <button 
+          type="button" 
+          onClick={() => navigate('/')} 
+          className="text-sm font-semibold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
         >
-          <option value="회고">회고</option>
-          <option value="이슈 목록">이슈 목록</option>
-          <option value="WIL">WIL</option>
-        </select>
-        <input 
-          type="text" 
-          placeholder="제목을 입력하세요" 
-          value={title} 
-          onChange={(e) => setTitle(e.target.value)}
-          style={inputStyle}
-        />
+          취소
+        </button>
       </div>
-      <textarea 
-        placeholder="내용을 입력하세요..." 
-        value={content} 
-        onChange={(e) => setContent(e.target.value)}
-        style={textareaStyle}
-      />
-      <button type="submit" style={buttonStyle}>기록하기</button>
-    </form>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* 카테고리 선택 및 제목 입력창 영역 */}
+        <div className="flex gap-3">
+          <select 
+            value={type} 
+            onChange={(e) => setType(e.target.value as PostType)} 
+            className="px-3 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-200 text-sm font-bold rounded-lg focus:outline-none focus:border-zinc-700 cursor-pointer transition-colors"
+          >
+            <option value="회고">회고</option>
+            <option value="이슈 목록">이슈 목록</option>
+            <option value="WIL">WIL</option>
+          </select>
+          
+          <input 
+            type="text" 
+            placeholder="기술 블로그 제목을 입력하세요" 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)}
+            className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg placeholder-zinc-600 focus:outline-none focus:border-zinc-600 text-base transition-colors"
+          />
+        </div>
+
+        {/* 장문의 글을 적는 본문 에디터 영역 */}
+        <textarea 
+          placeholder="오늘 마주한 에러 코드, 해결 과정, 배운 점들을 자유롭게 기록해 보세요..." 
+          value={content} 
+          onChange={(e) => setContent(e.target.value)}
+          className="min-h-[350px] p-5 bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl placeholder-zinc-600 focus:outline-none focus:border-zinc-600 text-base leading-relaxed font-mono resize-vertical shadow-inner"
+        />
+
+        {/* 하단 출간하기 버튼 */}
+        <div className="flex justify-end mt-2">
+          <button 
+            type="submit" 
+            className="w-full sm:w-auto px-6 py-2.5 text-sm font-bold bg-white text-black rounded-lg hover:bg-zinc-200 transition-colors duration-200 cursor-pointer shadow-md"
+          >
+            출간하기
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
-
-// 스타일 뼈대
-const formStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '30px', backgroundColor: '#f9f9f9' };
-const inputGroupStyle: React.CSSProperties = { display: 'flex', gap: '10px' };
-const selectStyle: React.CSSProperties = { padding: '8px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer' };
-const inputStyle: React.CSSProperties = { flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' };
-const textareaStyle: React.CSSProperties = { minHeight: '120px', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', resize: 'vertical' };
-const buttonStyle: React.CSSProperties = { padding: '10px', backgroundColor: '#24292e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
