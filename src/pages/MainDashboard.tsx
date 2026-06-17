@@ -15,10 +15,8 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
 
   return (
     <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <header>
         <div>
-          <h1 style={{ margin: 0 }}>💻 DevLog</h1>
-          <p style={{ margin: '5px 0 0 0', color: '#666' }}>회고 / 이슈 목록 / WIL 기록소</p>
         </div>
         {/* 글쓰기 페이지로 이동하는 버튼 */}
         <button onClick={() => navigate('/write')} style={writeBtnStyle}>✏️ 새 글 작성</button>
