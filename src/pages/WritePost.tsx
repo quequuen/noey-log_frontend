@@ -21,20 +21,28 @@ export default function WritePost({ onAddPost }: WritePostProps) {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {/* 뒤로가기 버튼 */}
+    <div className="w-full max-w-2xl text-zinc-100">
+      {/* 상단 헤더 영역 (뒤로가기 및 타이틀) */}
+      <div className="flex justify-between items-center mb-6">
         <button 
-            onClick={() => navigate('/')} 
-            className="mb-6 flex items-center gap-1 text-xl font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          type="button"
+          onClick={() => navigate('/')} 
+          className="flex items-center gap-1 text-sm font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
         >
-            ←
+          ← 목록으로 돌아가기
         </button>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <span className="text-xs text-zinc-500 font-mono">New Record</span>
+      </div>
+
+      {/* 작성 폼 */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        
+        {/* 카테고리 선택 및 제목 입력 */}
+        <div className="flex gap-3">
           <select 
             value={type} 
             onChange={(e) => setType(e.target.value as PostType)} 
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+            className="px-3 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-200 text-sm font-bold rounded-lg focus:outline-none focus:border-zinc-700 cursor-pointer transition-colors"
           >
             <option value="회고">회고</option>
             <option value="이슈 목록">이슈 목록</option>
@@ -45,22 +53,31 @@ export default function WritePost({ onAddPost }: WritePostProps) {
             placeholder="기술 블로그 제목을 입력하세요" 
             value={title} 
             onChange={(e) => setTitle(e.target.value)}
-            style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '16px' }}
+            className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg placeholder-zinc-600 focus:outline-none focus:border-zinc-600 text-base transition-colors"
           />
         </div>
 
+        {/* 장문의 글을 적는 부드러운 미색 본문 영역 */}
         <textarea 
           placeholder="오늘 마주한 에러 코드, 해결 과정, 배운 점들을 길게 자유롭게 기록해 보세요..." 
           value={content} 
           onChange={(e) => setContent(e.target.value)}
-          style={{ minHeight: '350px', padding: '15px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', lineHeight: '1.6', resize: 'vertical' }}
+          className="min-h-[350px] p-5 bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl placeholder-zinc-600 focus:outline-none focus:border-zinc-600 text-base leading-relaxed font-mono resize-vertical shadow-inner"
         />
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-          <button type="button" onClick={() => navigate('/')} style={{ padding: '10px 20px', background: '#eee', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+        {/* 하단 버튼 그룹 (취소 / 출간하기) */}
+        <div className="flex gap-3 justify-end mt-2">
+          <button 
+            type="button" 
+            onClick={() => navigate('/')} 
+            className="px-5 py-2.5 text-sm font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-lg hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
+          >
             취소
           </button>
-          <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#24292e', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+          <button 
+            type="submit" 
+            className="px-6 py-2.5 text-sm font-bold bg-white text-black rounded-lg hover:bg-zinc-200 transition-colors duration-200 cursor-pointer shadow-md"
+          >
             출간하기
           </button>
         </div>
