@@ -13,12 +13,16 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
 
   const filteredPosts = activeTab === '전체' ? posts : posts.filter(p => p.type === activeTab);
 
-  // 카테고리별 글자 색상 매핑
-  const getBadgeColor = (type: PostType) => {
-    if (type === '회고') return 'text-sky-400';
-    if (type === '이슈 목록') return 'text-rose-400';
-    return 'text-emerald-400'; // WIL
-  };
+  // 카테고리별 '글자색'과 '호버 테두리색'을 온전한 문자열로 매핑
+    const getPostStyles = (type: PostType) => {
+        if (type === '회고') {
+        return { text: 'text-sky-400', hoverBorder: 'hover:border-sky-400' };
+        }
+        if (type === '이슈 목록') {
+        return { text: 'text-rose-400', hoverBorder: 'hover:border-rose-400' };
+        }
+        return { text: 'text-emerald-400', hoverBorder: 'hover:border-emerald-400' }; // WIL
+    };
 
   return (
     <div className="w-full">
@@ -43,10 +47,10 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
         
         {/* 글쓰기 페이지로 이동하는 버튼 */}
         <button 
-          className="px-4 py-1.5 text-sm font-bold bg-red-800 text-white rounded-md hover:bg-red-700 transition-colors duration-200 cursor-pointer" 
-          onClick={() => navigate('/write')}
+        className="px-4 py-1.5 text-sm font-bold bg-emerald-950/50 text-yellow-400 border border-yellow-900/60 rounded-md hover:bg-yellow-900/40 hover:text-yellow-300 hover:border-yellow-500 transition-all duration-200 cursor-pointer" 
+        onClick={() => navigate('/write')}
         >
-          작성
+        작성
         </button>
       </div>
 
@@ -55,37 +59,37 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
         <p className="text-center text-zinc-500 py-10">불러오는 중...</p>
       ) : (
         <div className="flex flex-col gap-4">
-          {filteredPosts.length === 0 ? (
-            <p className="text-center text-zinc-500 py-10">등록된 기록이 없습니다.</p>
-          ) : (
-            filteredPosts.map(post => (
-              <div 
+          {filteredPosts.map(post => {
+            const { text, hoverBorder } = getPostStyles(post.type);
+
+            return (
+                <div 
                 key={post.id} 
                 onClick={() => navigate(`/post/${post.id}`)}
-                className="p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:border-zinc-700 hover:bg-zinc-900/80 transition-all duration-200 shadow-sm"
-              >
+                className={`p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 transition-all duration-200 shadow-sm ${hoverBorder}`}
+                >
                 {/* 카테고리 배지 */}
-                <span className={`text-xs font-bold block mb-1.5 ${getBadgeColor(post.type)}`}>
-                  {post.type}
+                <span className={`text-xs font-bold block mb-1.5 ${text}`}>
+                    {post.type}
                 </span>
                 
                 {/* 제목 */}
                 <h2 className="text-lg font-bold text-zinc-100 mb-2">
-                  {post.title}
+                    {post.title}
                 </h2>
                 
-                {/* 본문 요약 (말줄임 처리) */}
+                {/* 본문 요약 */}
                 <p className="text-zinc-400 text-sm leading-relaxed mb-3 line-clamp-2">
-                  {post.content}
+                    {post.content}
                 </p>
                 
                 {/* 날짜 */}
                 <span className="text-xs text-zinc-500 block">
-                  {post.date}
+                    {post.date}
                 </span>
-              </div>
-            ))
-          )}
+                </div>
+            );
+            })}
         </div>
       )}
     </div>
