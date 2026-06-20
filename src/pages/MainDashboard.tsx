@@ -56,9 +56,9 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
 
       {/* 리스트 목록 */}
       {loading ? (
-        <p className="text-center text-zinc-500 py-10">불러오는 중...</p>
+        <p className="text-center text-zinc-500 py-10 w-full">불러오는 중...</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 w-full">
           {filteredPosts.map(post => {
             const { text, hoverBorder } = getPostStyles(post.type);
 
@@ -66,7 +66,7 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
                 <div 
                 key={post.id} 
                 onClick={() => navigate(`/post/${post.id}`)}
-                className={`p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 transition-all duration-200 shadow-sm ${hoverBorder}`}
+                className={`w-full p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 transition-all duration-200 shadow-sm ${hoverBorder}`}
                 >
                 {/* 카테고리 배지 */}
                 <span className={`text-xs font-bold block mb-1.5 ${text}`}>
