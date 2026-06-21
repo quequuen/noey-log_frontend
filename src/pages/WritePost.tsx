@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { NewPostInput, PostType } from '../types/post';
+import { useAdminGuard } from '../hooks/useAdminGaurd';
 
 interface WritePostProps {
   onAddPost: (newPost: NewPostInput) => void;
 }
 
 export default function WritePost({ onAddPost }: WritePostProps) {
+  useAdminGuard();
   const navigate = useNavigate();
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
