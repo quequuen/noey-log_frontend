@@ -46,12 +46,14 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
         </div>
         
         {/* 글쓰기 페이지로 이동하는 버튼 */}
-        <button 
-        className="px-4 py-1.5 text-sm font-bold bg-emerald-950/50 text-yellow-400 border border-yellow-900/60 rounded-md hover:bg-yellow-900/40 hover:text-yellow-300 hover:border-yellow-500 transition-all duration-200 cursor-pointer" 
-        onClick={() => navigate('/write')}
-        >
-        작성
-        </button>
+        {import.meta.env.DEV && (
+          <button 
+            className="px-4 py-1.5 text-sm font-bold bg-emerald-950/50 text-yellow-400 border border-yellow-900/60 rounded-md hover:bg-yellow-900/40 hover:text-yellow-300 hover:border-yellow-500 transition-all duration-200 cursor-pointer" 
+            onClick={() => navigate('/write')}
+          >
+            작성
+          </button>
+        )}
       </div>
 
       {/* 리스트 목록 */}

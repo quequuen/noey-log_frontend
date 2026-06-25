@@ -69,14 +69,16 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
       </article>
 
       {/* 하단 제어 버튼 컴포넌트 */}
-      <div className="mt-8 flex justify-end">
-        <button 
-          onClick={handleDelete} 
-          className="px-4 py-2 text-sm font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 rounded-md hover:bg-rose-900/50 hover:text-rose-300 transition-all duration-200 cursor-pointer"
-        >
-          기록 삭제하기
-        </button>
-      </div>
+      {import.meta.env.DEV && (
+        <div className="mt-8 flex justify-end">
+          <button 
+            onClick={handleDelete} 
+            className="px-4 py-2 text-sm font-bold bg-rose-950/40 text-rose-400 border border-rose-900/60 rounded-md hover:bg-rose-900/50 hover:text-rose-300 transition-all duration-200 cursor-pointer"
+          >
+            기록 삭제하기
+          </button>
+        </div>
+      )}
     </div>
   );
 }
