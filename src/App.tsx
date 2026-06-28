@@ -15,7 +15,7 @@ export default function App() {
           <Route path="/" element={<MainDashboard posts={posts} loading={loading} />} />
           
           {/* 글 쓰기 페이지 */}
-          <Route path="/write" element={<WritePost onAddPost={onAddPost} />} />
+          <Route path="/write" element={<WritePost posts={posts} onAddPost={onAddPost} />} />
           
           {/* 글 상세 보기 페이지 (:id 가 주소창의 동적 파라미터) */}
           <Route path="/post/:id" element={<PostDetail posts={posts} onDeletePost={onDeletePost} />} />

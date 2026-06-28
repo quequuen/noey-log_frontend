@@ -53,7 +53,7 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
       {/* 본문 아티클 영역 */}
       <article className="border-t border-zinc-800 pt-6">
         <span className={`text-sm font-bold ${getBadgeColor(post.type)}`}>
-          {post.type}
+          {post.subcategory ? `${post.type} > ${post.subcategory}` : post.type}
         </span>
         <h1 className="text-3xl font-extrabold text-zinc-100 mt-2 mb-3 tracking-tight">
           {post.title}

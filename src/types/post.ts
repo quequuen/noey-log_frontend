@@ -5,6 +5,7 @@ export type PostType = '회고' | '이슈 목록' | 'WIL';
 export interface Post {
   id: number;
   type: PostType;
+  subcategory?: string;
   title: string;
   content: string;
   date: string;
