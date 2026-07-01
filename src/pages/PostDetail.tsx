@@ -42,6 +42,8 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
     return 'text-emerald-400';
   };
 
+  console.log(post.content); 
+
   return (
     <div className="w-full text-zinc-100">
       {/* 뒤로가기 버튼 */}
@@ -65,11 +67,11 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
         </p>
         
         {/* 본문 상자 */}
-        <div className="text-base leading-relaxed text-black white-space-pre-wrap bg-zinc-100 border border-zinc-800 p-6 rounded-xl font-mono min-h-[250px] shadow-lg prose-invert">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {post.content.replace(/\\n/g, '\n')}
-            </ReactMarkdown>
-        </div>
+       <div className="prose prose-lg max-w-none text-black bg-zinc-100 border border-zinc-800 p-6 rounded-xl min-h-[250px]">
+  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+    {post.content.replace(/\\n/g, '\n')}
+  </ReactMarkdown>
+</div>
       </article>
 
       {/* 하단 제어 버튼 컴포넌트 */}

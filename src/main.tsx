@@ -3,6 +3,7 @@ import './index.css'
 import App from './App.tsx'
 import Header from './layouts/Header.tsx'
 import BackgroundStars from './components/BackgroundStars.tsx' 
+import './App.css'
 
 createRoot(document.getElementById('root')!).render(
   <div className='relative flex flex-col items-stretch p-10 gap-8 min-h-screen bg-black overflow-x-hidden'>
