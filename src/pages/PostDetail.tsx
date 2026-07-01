@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Post } from '../types/post';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface PostDetailProps {
   posts: Post[];
@@ -63,8 +65,10 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
         </p>
         
         {/* 본문 상자 */}
-        <div className="text-base leading-relaxed text-black white-space-pre-wrap bg-zinc-100 border border-zinc-800 p-6 rounded-xl font-mono min-h-[250px] shadow-lg">
-            {post.content}
+        <div className="text-base leading-relaxed text-black white-space-pre-wrap bg-zinc-100 border border-zinc-800 p-6 rounded-xl font-mono min-h-[250px] shadow-lg prose-invert">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {post.content}
+            </ReactMarkdown>
         </div>
       </article>
 
