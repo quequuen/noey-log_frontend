@@ -67,7 +67,7 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
         {/* 본문 상자 */}
         <div className="text-base leading-relaxed text-black white-space-pre-wrap bg-zinc-100 border border-zinc-800 p-6 rounded-xl font-mono min-h-[250px] shadow-lg prose-invert">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {post.content}
+              {post.content.replace(/\\n/g, '\n')}
             </ReactMarkdown>
         </div>
       </article>
