@@ -3,6 +3,7 @@ import { usePosts } from './hooks/usePosts';
 import MainDashboard from './pages/MainDashboard';
 import PostDetail from './pages/PostDetail';
 import WritePost from './pages/WritePost';
+import NotFound from './pages/NotFound';
 
 export default function App() {
   const { posts, loading, onAddPost, onDeletePost } = usePosts();
@@ -19,6 +20,9 @@ export default function App() {
           
           {/* 글 상세 보기 페이지 (:id 가 주소창의 동적 파라미터) */}
           <Route path="/post/:id" element={<PostDetail posts={posts} onDeletePost={onDeletePost} />} />
+
+          {/* 정의되지 않은 모든 경로 */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>
