@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Post, PostType } from '../types/post';
 
 interface MainDashboardProps {
@@ -7,47 +7,72 @@ interface MainDashboardProps {
   loading: boolean;
 }
 
-const TYPES_WITH_SUBCATEGORY: PostType[] = ['이슈 목록', 'WIL'];
+const TABS = ['전체', '회고', '이슈 목록', 'WIL'] as const;
+type Tab = (typeof TABS)[number];
 
-function getSubcategories(posts: Post[], type: PostType): string[] {
-  return [...new Set(
-    posts
-      .filter(p => p.type === type && p.subcategory)
-      .map(p => p.subcategory!)
-  )].sort();
+function getAllTags(posts: Post[]): string[] {
+  return [...new Set(posts.flatMap(p => p.tags))].sort((a, b) =>
+    a.localeCompare(b, 'ko')
+  );
 }
 
 export default function MainDashboard({ posts, loading }: MainDashboardProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'전체' | PostType>('전체');
-  const [activeSubcategory, setActiveSubcategory] = useState<string>('전체');
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const subcategories = useMemo(
-    () => (TYPES_WITH_SUBCATEGORY.includes(activeTab as PostType)
-      ? getSubcategories(posts, activeTab as PostType)
-      : []),
-    [posts, activeTab]
-  );
+  const activeTab: Tab =
+    (TABS.find(t => t === searchParams.get('type')) as Tab) ?? '전체';
+  const selectedTags = searchParams.getAll('tag');
+  const urlQuery = searchParams.get('q') ?? '';
 
-  const hasUncategorized = useMemo(
-    () => TYPES_WITH_SUBCATEGORY.includes(activeTab as PostType)
-      && posts.some(p => p.type === activeTab && !p.subcategory),
-    [posts, activeTab]
-  );
+  // 검색 입력은 로컬 state로 관리하고 URL 반영은 디바운스한다.
+  const [query, setQuery] = useState(urlQuery);
+
+  // 뒤로가기 등 외부에서 q가 바뀌면 렌더 중에 입력창을 맞춰준다.
+  const [syncedQuery, setSyncedQuery] = useState(urlQuery);
+  if (urlQuery !== syncedQuery) {
+    setSyncedQuery(urlQuery);
+    setQuery(urlQuery);
+  }
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchParams(
+        prev => {
+          if ((prev.get('q') ?? '') === query) return prev;
+          const next = new URLSearchParams(prev);
+          if (query) next.set('q', query);
+          else next.delete('q');
+          return next;
+        },
+        { replace: true }
+      );
+    }, 250);
+    return () => clearTimeout(id);
+  }, [query, setSearchParams]);
+
+  const allTags = useMemo(() => getAllTags(posts), [posts]);
 
   const filteredPosts = useMemo(() => {
-    let result = activeTab === '전체' ? posts : posts.filter(p => p.type === activeTab);
+    const q = query.trim().toLowerCase();
 
-    if (TYPES_WITH_SUBCATEGORY.includes(activeTab as PostType) && activeSubcategory !== '전체') {
-      if (activeSubcategory === '미분류') {
-        result = result.filter(p => !p.subcategory);
-      } else {
-        result = result.filter(p => p.subcategory === activeSubcategory);
+    return posts.filter(post => {
+      if (activeTab !== '전체' && post.type !== activeTab) return false;
+
+      if (selectedTags.length > 0 && !selectedTags.every(t => post.tags.includes(t))) {
+        return false;
       }
-    }
 
-    return result;
-  }, [posts, activeTab, activeSubcategory]);
+      if (q) {
+        const haystack = [post.title, post.content, ...post.tags]
+          .join(' ')
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+
+      return true;
+    });
+  }, [posts, activeTab, selectedTags, query]);
 
   const getPostStyles = (type: PostType) => {
     if (type === '회고') {
@@ -59,16 +84,46 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
     return { text: 'text-emerald-400', hoverBorder: 'hover:border-emerald-400' };
   };
 
-  const handleTabChange = (tab: '전체' | PostType) => {
-    setActiveTab(tab);
-    setActiveSubcategory('전체');
+  const setParams = (mutate: (params: URLSearchParams) => void) => {
+    const next = new URLSearchParams(searchParams);
+    mutate(next);
+    setSearchParams(next, { replace: true });
   };
+
+  const handleTabChange = (tab: Tab) => {
+    setParams(params => {
+      if (tab === '전체') params.delete('type');
+      else params.set('type', tab);
+    });
+  };
+
+  const toggleTag = (tag: string) => {
+    setParams(params => {
+      const current = params.getAll('tag');
+      params.delete('tag');
+      if (current.includes(tag)) {
+        current.filter(t => t !== tag).forEach(t => params.append('tag', t));
+      } else {
+        [...current, tag].forEach(t => params.append('tag', t));
+      }
+    });
+  };
+
+  const clearFilters = () => {
+    setQuery('');
+    setParams(params => {
+      params.delete('tag');
+      params.delete('q');
+    });
+  };
+
+  const hasActiveFilters = selectedTags.length > 0 || query.trim() !== '';
 
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          {(['전체', '회고', '이슈 목록', 'WIL'] as const).map(tab => (
+          {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}
@@ -93,46 +148,54 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
         )}
       </div>
 
-      {subcategories.length > 0 || hasUncategorized ? (
-        <div className="flex flex-wrap gap-2 mb-6">
+      <div className="relative mb-4">
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Escape' && setQuery('')}
+          placeholder="제목 · 내용 · 태그 검색"
+          className="w-full px-4 py-2 pr-9 text-sm bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors [&::-webkit-search-cancel-button]:appearance-none"
+        />
+        {query && (
           <button
-            onClick={() => setActiveSubcategory('전체')}
-            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors duration-200 cursor-pointer
-              ${activeSubcategory === '전체'
-                ? 'bg-zinc-200 text-black'
-                : 'bg-zinc-800/60 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-200'
-              }`}
+            type="button"
+            onClick={() => setQuery('')}
+            aria-label="검색어 지우기"
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full text-xs text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
           >
-            전체
+            ✕
           </button>
-          {subcategories.map(sub => (
+        )}
+      </div>
+
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          {allTags.map(tag => {
+            const active = selectedTags.includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-3 py-1 text-xs font-bold rounded-full transition-colors duration-200 cursor-pointer
+                  ${active
+                    ? 'bg-zinc-200 text-black'
+                    : 'bg-zinc-800/60 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-200'
+                  }`}
+              >
+                #{tag}
+              </button>
+            );
+          })}
+          {hasActiveFilters && (
             <button
-              key={sub}
-              onClick={() => setActiveSubcategory(sub)}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-colors duration-200 cursor-pointer
-                ${activeSubcategory === sub
-                  ? 'bg-zinc-200 text-black'
-                  : 'bg-zinc-800/60 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-200'
-                }`}
+              onClick={clearFilters}
+              className="px-3 py-1 text-xs font-bold text-zinc-500 hover:text-zinc-200 transition-colors duration-200 cursor-pointer"
             >
-              {sub}
-            </button>
-          ))}
-          {hasUncategorized && (
-            <button
-              onClick={() => setActiveSubcategory('미분류')}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-colors duration-200 cursor-pointer
-                ${activeSubcategory === '미분류'
-                  ? 'bg-zinc-200 text-black'
-                  : 'bg-zinc-800/60 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-200'
-                }`}
-            >
-              미분류
+              초기화 ✕
             </button>
           )}
         </div>
-      ) : (
-        <div className="mb-6" />
       )}
 
       {loading ? (
@@ -151,7 +214,7 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
                 className={`w-full p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 transition-all duration-200 shadow-sm ${hoverBorder}`}
               >
                 <span className={`text-xs font-bold block mb-1.5 ${text}`}>
-                  {post.subcategory ? `${post.type} > ${post.subcategory}` : post.type}
+                  {post.type}
                 </span>
 
                 <h2 className="text-lg font-bold text-zinc-100 mb-2">
@@ -162,9 +225,25 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
                   {post.content}
                 </p>
 
-                <span className="text-xs text-zinc-500 block">
-                  {post.date}
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {post.tags.map(tag => (
+                      <span
+                        key={tag}
+                        onClick={e => {
+                          e.stopPropagation();
+                          toggleTag(tag);
+                        }}
+                        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-xs text-zinc-500 shrink-0">
+                    {post.date}
+                  </span>
+                </div>
               </div>
             );
           })}

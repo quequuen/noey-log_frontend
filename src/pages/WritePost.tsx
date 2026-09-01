@@ -5,8 +5,6 @@ import { MdEditor } from 'md-editor-rt';
 import { useImageUpload } from '../hooks/useImageUpload';
 import 'md-editor-rt/lib/style.css';
 
-const TYPES_WITH_SUBCATEGORY: PostType[] = ['이슈 목록', 'WIL'];
-
 interface WritePostProps {
   posts: Post[];
   onAddPost: (newPost: NewPostInput) => void;
@@ -17,39 +15,47 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [type, setType] = useState<PostType>('회고');
-  const [subcategory, setSubcategory] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState<string>('');
 
   const { handleImageUpload, isUploading } = useImageUpload();
 
-  const existingSubcategories = useMemo(
-    () =>
-      [...new Set(
-        posts
-          .filter(p => p.type === type && p.subcategory)
-          .map(p => p.subcategory!)
-      )].sort(),
-    [posts, type]
+  const existingTags = useMemo(
+    () => [...new Set(posts.flatMap(p => p.tags))].sort((a, b) => a.localeCompare(b, 'ko')),
+    [posts]
   );
 
-  const needsSubcategory = TYPES_WITH_SUBCATEGORY.includes(type);
+  const addTag = (raw: string) => {
+    const tag = raw.trim().replace(/^#/, '');
+    if (!tag || tags.includes(tag)) return;
+    setTags([...tags, tag]);
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string) => setTags(tags.filter(t => t !== tag));
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(tagInput);
+    } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+      removeTag(tags[tags.length - 1]);
+    }
+  };
 
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) return alert('제목과 내용을 모두 채워주세요!');
-    if (needsSubcategory && !subcategory.trim()) return alert('프로젝트(서브 카테고리)를 입력해 주세요!');
 
-    const trimmedSubcategory = subcategory.trim();
-    onAddPost({
-      title,
-      content,
-      type,
-      ...(needsSubcategory && trimmedSubcategory ? { subcategory: trimmedSubcategory } : {}),
-    });
+    const pending = tagInput.trim().replace(/^#/, '');
+    const finalTags = pending && !tags.includes(pending) ? [...tags, pending] : tags;
+
+    onAddPost({ title, content, type, tags: finalTags });
     navigate('/');
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-zinc-900 text-zinc-100 relative rounded-md">
-      
+
       {/* 업로드 중일 때 화면에 로딩 표시 띄우기 */}
       {isUploading && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 rounded-md">
@@ -57,8 +63,8 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
         </div>
       )}
 
-      <button 
-        onClick={() => navigate(-1)} 
+      <button
+        onClick={() => navigate(-1)}
         className="p-2 text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer mb-5"
         title="뒤로 가기"
       >
@@ -72,10 +78,7 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
         <div className="flex gap-4">
           <select
             value={type}
-            onChange={(e) => {
-              setType(e.target.value as PostType);
-              setSubcategory('');
-            }}
+            onChange={(e) => setType(e.target.value as PostType)}
             className="bg-zinc-800 border border-zinc-700 px-3 py-2 rounded-md font-bold text-sm"
           >
             <option value="회고">회고</option>
@@ -88,27 +91,42 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
           </button>
         </div>
 
-        {needsSubcategory && (
-          <div className="flex items-center gap-2">
-            <label htmlFor="subcategory" className="text-sm font-bold text-zinc-400 shrink-0">
-              프로젝트
-            </label>
-            <input
-              id="subcategory"
-              type="text"
-              list="subcategory-suggestions"
-              placeholder="예: noey-log"
-              value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
-              className="flex-1 bg-zinc-800 border border-zinc-700 px-3 py-2 rounded-md text-sm outline-none focus:border-emerald-500"
-            />
-            <datalist id="subcategory-suggestions">
-              {existingSubcategories.map(name => (
-                <option key={name} value={name} />
-              ))}
-            </datalist>
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap bg-zinc-800 border border-zinc-700 px-3 py-2 rounded-md">
+          <label htmlFor="tags" className="text-sm font-bold text-zinc-400 shrink-0">
+            태그
+          </label>
+          {tags.map(tag => (
+            <span
+              key={tag}
+              className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-zinc-700 text-zinc-200"
+            >
+              #{tag}
+              <button
+                type="button"
+                onClick={() => removeTag(tag)}
+                className="text-zinc-400 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+          <input
+            id="tags"
+            type="text"
+            list="tag-suggestions"
+            placeholder="입력 후 Enter (예: react)"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagKeyDown}
+            onBlur={() => addTag(tagInput)}
+            className="flex-1 min-w-[140px] bg-transparent text-sm outline-none"
+          />
+          <datalist id="tag-suggestions">
+            {existingTags.map(name => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+        </div>
       </div>
 
       {/* 마크다운 에디터 */}
@@ -116,7 +134,7 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
         <MdEditor
           modelValue={content}
           onChange={setContent}
-          onUploadImg={handleImageUpload} 
+          onUploadImg={handleImageUpload}
           language="en-US"
           placeholder="마크다운 문법으로 이야기를 펼쳐보세요..."
           className="h-[60vh]"

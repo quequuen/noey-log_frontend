@@ -16,7 +16,7 @@ export default function PostForm({ onAddPost }: PostFormProps) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return alert('제목과 내용을 모두 입력해 주세요!');
     
-    onAddPost({ title, content, type });
+    onAddPost({ title, content, type, tags: [] });
     setTitle('');
     setContent('');
     navigate('/'); 
