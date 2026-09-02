@@ -8,7 +8,7 @@ import 'highlight.js/styles/github-dark.css';
 
 interface PostDetailProps {
   posts: Post[];
-  onDeletePost: (id: number) => void;
+  onDeletePost: (id: number) => Promise<void>;
 }
 
 function CodeBlock({ children }: { children?: React.ReactNode }) {
@@ -59,11 +59,10 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
     );
   }
 
-  const handleDelete = () => {
-    if (window.confirm('정말 이 기록을 삭제하시겠습니까?')) {
-      onDeletePost(post.id);
-      navigate('/');
-    }
+  const handleDelete = async () => {
+    if (!window.confirm('정말 이 기록을 삭제하시겠습니까?')) return;
+    await onDeletePost(post.id);
+    navigate('/');
   };
 
   // 카테고리별 텍스트 색상 매핑 (MainDashboard와 통일)

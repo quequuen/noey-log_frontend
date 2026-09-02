@@ -31,7 +31,22 @@ export function usePosts() {
     }
   };
 
-  const handleDeletePost = () => {};
+  const handleDeletePost = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/posts/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setPosts(prev => prev.filter(post => post.id !== id));
+      } else {
+        alert('삭제에 실패했습니다. (서버 응답 오류)');
+      }
+    } catch (error) {
+      console.error('스프링 부트 서버가 꺼져있는지 확인해보세요!', error);
+      alert('삭제에 실패했습니다. 서버가 실행 중인지 확인해 주세요.');
+    }
+  };
 
   return { posts, loading, onAddPost: handleAddPost, onDeletePost: handleDeletePost };
 }
