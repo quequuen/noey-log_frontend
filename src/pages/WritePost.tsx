@@ -54,7 +54,7 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 bg-zinc-900 text-zinc-100 relative rounded-md">
+    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 bg-zinc-900 text-zinc-100 relative rounded-md">
 
       {/* 업로드 중일 때 화면에 로딩 표시 띄우기 */}
       {isUploading && (
@@ -75,7 +75,7 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
 
       {/* 메타데이터 영역 */}
       <div className="flex flex-col gap-3 mb-4">
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <select
             value={type}
             onChange={(e) => setType(e.target.value as PostType)}
@@ -86,7 +86,7 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
             <option value="WIL">WIL</option>
           </select>
           <input type="text" placeholder="제목을 입력하세요..." value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 bg-zinc-800 border border-zinc-700 px-4 py-2 rounded-md text-lg font-bold outline-none focus:border-emerald-500" />
-          <button onClick={handleSubmit} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-md transition-colors cursor-pointer">
+          <button onClick={handleSubmit} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-md transition-colors cursor-pointer shrink-0">
             출간하기
           </button>
         </div>

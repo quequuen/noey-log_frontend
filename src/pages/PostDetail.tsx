@@ -88,7 +88,7 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
         <span className={`text-sm font-bold ${getBadgeColor(post.type)}`}>
           {post.type}
         </span>
-        <h1 className="text-3xl font-extrabold text-zinc-100 mt-2 mb-3 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 mt-2 mb-3 tracking-tight">
           {post.title}
         </h1>
         <p className="text-xs text-zinc-500 mb-3">작성일: {post.date}</p>
@@ -108,7 +108,7 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
         )}
 
         {/* 본문 상자 */}
-        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl min-h-[250px] shadow-lg prose prose-invert max-w-none prose-pre:whitespace-pre-wrap">
+        <div className="bg-zinc-900 border border-zinc-800 p-4 sm:p-6 rounded-xl min-h-[250px] shadow-lg prose prose-invert max-w-none prose-pre:whitespace-pre-wrap">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}

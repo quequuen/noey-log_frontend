@@ -121,8 +121,8 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+        <div className="flex flex-wrap gap-2">
           {TABS.map(tab => (
             <button
               key={tab}

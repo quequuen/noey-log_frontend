@@ -6,7 +6,7 @@ import BackgroundStars from './components/BackgroundStars.tsx'
 import './App.css'
 
 createRoot(document.getElementById('root')!).render(
-  <div className='relative flex flex-col items-stretch p-10 gap-8 min-h-screen bg-black overflow-x-hidden'>
+  <div className='relative flex flex-col items-stretch p-4 sm:p-6 md:p-10 gap-6 md:gap-8 min-h-screen bg-black overflow-x-hidden'>
     
     <BackgroundStars /> 
 

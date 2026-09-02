@@ -10,7 +10,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="w-[60%] bg-black h-[80%]">
+      <div className="w-full max-w-4xl">
         <Routes>
           {/* 메인 목록 페이지 */}
           <Route path="/" element={<MainDashboard posts={posts} loading={loading} />} />
