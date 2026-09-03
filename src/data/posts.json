@@ -27,13 +27,6 @@
   "content" : "dddd",
   "date" : "2026-06-24"
 }, {
-  "id" : 4,
-  "type" : "회고",
-  "tags" : [ ],
-  "title" : "qq",
-  "content" : "qqq",
-  "date" : "2026-06-23"
-}, {
   "id" : 1,
   "type" : "회고",
   "tags" : [ ],
