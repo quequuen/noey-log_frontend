@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { Post, PostType } from '../types/post';
+import type { Post } from '../types/post';
+import { getCategoryStyle, UNCATEGORIZED_LABEL } from '../utils/categoryStyle';
 
 interface MainDashboardProps {
   posts: Post[];
   loading: boolean;
 }
 
-const TABS = ['전체', '회고', '이슈 목록', 'WIL'] as const;
-type Tab = (typeof TABS)[number];
+const ALL_TAB = '전체';
 
 function getAllTags(posts: Post[]): string[] {
   return [...new Set(posts.flatMap(p => p.tags))].sort((a, b) =>
+    a.localeCompare(b, 'ko')
+  );
+}
+
+function getAllCategories(posts: Post[]): string[] {
+  return [...new Set(posts.flatMap(p => p.categories))].sort((a, b) =>
     a.localeCompare(b, 'ko')
   );
 }
@@ -20,8 +26,18 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab: Tab =
-    (TABS.find(t => t === searchParams.get('type')) as Tab) ?? '전체';
+  const categories = useMemo(() => getAllCategories(posts), [posts]);
+  const hasUncategorized = useMemo(
+    () => posts.some(p => p.categories.length === 0),
+    [posts]
+  );
+  const TABS = useMemo(
+    () => [ALL_TAB, ...categories, ...(hasUncategorized ? [UNCATEGORIZED_LABEL] : [])],
+    [categories, hasUncategorized]
+  );
+
+  const requestedTab = searchParams.get('category');
+  const activeTab = requestedTab && TABS.includes(requestedTab) ? requestedTab : ALL_TAB;
   const selectedTags = searchParams.getAll('tag');
   const urlQuery = searchParams.get('q') ?? '';
 
@@ -57,7 +73,13 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
     const q = query.trim().toLowerCase();
 
     return posts.filter(post => {
-      if (activeTab !== '전체' && post.type !== activeTab) return false;
+      if (activeTab !== ALL_TAB) {
+        if (activeTab === UNCATEGORIZED_LABEL) {
+          if (post.categories.length > 0) return false;
+        } else if (!post.categories.includes(activeTab)) {
+          return false;
+        }
+      }
 
       if (selectedTags.length > 0 && !selectedTags.every(t => post.tags.includes(t))) {
         return false;
@@ -74,26 +96,16 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
     });
   }, [posts, activeTab, selectedTags, query]);
 
-  const getPostStyles = (type: PostType) => {
-    if (type === '회고') {
-      return { text: 'text-sky-400', hoverBorder: 'hover:border-sky-400' };
-    }
-    if (type === '이슈 목록') {
-      return { text: 'text-rose-400', hoverBorder: 'hover:border-rose-400' };
-    }
-    return { text: 'text-emerald-400', hoverBorder: 'hover:border-emerald-400' };
-  };
-
   const setParams = (mutate: (params: URLSearchParams) => void) => {
     const next = new URLSearchParams(searchParams);
     mutate(next);
     setSearchParams(next, { replace: true });
   };
 
-  const handleTabChange = (tab: Tab) => {
+  const handleTabChange = (tab: string) => {
     setParams(params => {
-      if (tab === '전체') params.delete('type');
-      else params.set('type', tab);
+      if (tab === ALL_TAB) params.delete('category');
+      else params.set('category', tab);
     });
   };
 
@@ -205,7 +217,9 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
       ) : (
         <div className="flex flex-col gap-4 w-full">
           {filteredPosts.map(post => {
-            const { text, hoverBorder } = getPostStyles(post.type);
+            const hoverBorder = post.categories[0]
+              ? getCategoryStyle(post.categories[0]).hoverBorder
+              : 'hover:border-zinc-600';
 
             return (
               <div
@@ -213,9 +227,22 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
                 onClick={() => navigate(`/post/${post.id}`)}
                 className={`w-full p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 transition-all duration-200 shadow-sm ${hoverBorder}`}
               >
-                <span className={`text-xs font-bold block mb-1.5 ${text}`}>
-                  {post.type}
-                </span>
+                <div className="flex flex-wrap gap-x-2 gap-y-1 mb-1.5">
+                  {post.categories.length > 0 ? (
+                    post.categories.map(category => (
+                      <span
+                        key={category}
+                        className={`text-xs font-bold ${getCategoryStyle(category).text}`}
+                      >
+                        {category}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs font-bold text-zinc-500">
+                      {UNCATEGORIZED_LABEL}
+                    </span>
+                  )}
+                </div>
 
                 <h2 className="text-lg font-bold text-zinc-100 mb-2">
                   {post.title}

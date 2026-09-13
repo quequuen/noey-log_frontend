@@ -1,10 +1,8 @@
 // 타입 정의 파일
 
-export type PostType = '회고' | '이슈 목록' | 'WIL';
-
 export interface Post {
   id: number;
-  type: PostType;
+  categories: string[];
   tags: string[];
   title: string;
   content: string;
