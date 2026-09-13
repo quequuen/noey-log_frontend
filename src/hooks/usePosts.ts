@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import type { Post, NewPostInput } from '../types/post';
-import initialPosts from '../data/posts.json'; 
+import initialPosts from '../data/posts.json';
+
+// posts.json은 백엔드가 검증 없이 그대로 받아 쓰는 파일이라 tags가
+// 누락되거나 null로 들어올 수 있다 — 화면에서 항상 배열로 다룰 수 있도록 보정한다.
+function normalizePost(raw: Partial<Post>): Post {
+  return {
+    ...raw,
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+  } as Post;
+}
 
 export function usePosts() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -8,7 +17,7 @@ export function usePosts() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPosts(initialPosts as Post[]);
+    setPosts((initialPosts as Partial<Post>[]).map(normalizePost));
     setLoading(false);
   }, []);
 

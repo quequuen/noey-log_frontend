@@ -1,23 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Post } from '../types/post';
-import { getCategoryStyle, UNCATEGORIZED_LABEL } from '../utils/categoryStyle';
 
 interface MainDashboardProps {
   posts: Post[];
   loading: boolean;
 }
 
-const ALL_TAB = '전체';
-
 function getAllTags(posts: Post[]): string[] {
   return [...new Set(posts.flatMap(p => p.tags))].sort((a, b) =>
-    a.localeCompare(b, 'ko')
-  );
-}
-
-function getAllCategories(posts: Post[]): string[] {
-  return [...new Set(posts.flatMap(p => p.categories))].sort((a, b) =>
     a.localeCompare(b, 'ko')
   );
 }
@@ -26,18 +17,6 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const categories = useMemo(() => getAllCategories(posts), [posts]);
-  const hasUncategorized = useMemo(
-    () => posts.some(p => p.categories.length === 0),
-    [posts]
-  );
-  const TABS = useMemo(
-    () => [ALL_TAB, ...categories, ...(hasUncategorized ? [UNCATEGORIZED_LABEL] : [])],
-    [categories, hasUncategorized]
-  );
-
-  const requestedTab = searchParams.get('category');
-  const activeTab = requestedTab && TABS.includes(requestedTab) ? requestedTab : ALL_TAB;
   const selectedTags = searchParams.getAll('tag');
   const urlQuery = searchParams.get('q') ?? '';
 
@@ -73,14 +52,6 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
     const q = query.trim().toLowerCase();
 
     return posts.filter(post => {
-      if (activeTab !== ALL_TAB) {
-        if (activeTab === UNCATEGORIZED_LABEL) {
-          if (post.categories.length > 0) return false;
-        } else if (!post.categories.includes(activeTab)) {
-          return false;
-        }
-      }
-
       if (selectedTags.length > 0 && !selectedTags.every(t => post.tags.includes(t))) {
         return false;
       }
@@ -94,19 +65,12 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
 
       return true;
     });
-  }, [posts, activeTab, selectedTags, query]);
+  }, [posts, selectedTags, query]);
 
   const setParams = (mutate: (params: URLSearchParams) => void) => {
     const next = new URLSearchParams(searchParams);
     mutate(next);
     setSearchParams(next, { replace: true });
-  };
-
-  const handleTabChange = (tab: string) => {
-    setParams(params => {
-      if (tab === ALL_TAB) params.delete('category');
-      else params.set('category', tab);
-    });
   };
 
   const toggleTag = (tag: string) => {
@@ -133,23 +97,7 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
-        <div className="flex flex-wrap gap-2">
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => handleTabChange(tab)}
-              className={`px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-200 cursor-pointer
-                ${activeTab === tab
-                  ? 'bg-white text-black'
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
+      <div className="flex flex-wrap justify-end items-center gap-2 mb-4">
         {import.meta.env.DEV && (
           <button
             className="px-4 py-1.5 text-sm font-bold bg-emerald-950/50 text-yellow-400 border border-yellow-900/60 rounded-md hover:bg-yellow-900/40 hover:text-yellow-300 hover:border-yellow-500 transition-all duration-200 cursor-pointer"
@@ -216,64 +164,41 @@ export default function MainDashboard({ posts, loading }: MainDashboardProps) {
         <p className="text-center text-zinc-500 py-10 w-full">표시할 글이 없습니다.</p>
       ) : (
         <div className="flex flex-col gap-4 w-full">
-          {filteredPosts.map(post => {
-            const hoverBorder = post.categories[0]
-              ? getCategoryStyle(post.categories[0]).hoverBorder
-              : 'hover:border-zinc-600';
+          {filteredPosts.map(post => (
+            <div
+              key={post.id}
+              onClick={() => navigate(`/post/${post.id}`)}
+              className="w-full p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 hover:border-zinc-600 transition-all duration-200 shadow-sm"
+            >
+              <h2 className="text-lg font-bold text-zinc-100 mb-2">
+                {post.title}
+              </h2>
 
-            return (
-              <div
-                key={post.id}
-                onClick={() => navigate(`/post/${post.id}`)}
-                className={`w-full p-5 bg-zinc-900 border border-zinc-800 rounded-lg cursor-pointer hover:bg-zinc-900/80 transition-all duration-200 shadow-sm ${hoverBorder}`}
-              >
-                <div className="flex flex-wrap gap-x-2 gap-y-1 mb-1.5">
-                  {post.categories.length > 0 ? (
-                    post.categories.map(category => (
-                      <span
-                        key={category}
-                        className={`text-xs font-bold ${getCategoryStyle(category).text}`}
-                      >
-                        {category}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs font-bold text-zinc-500">
-                      {UNCATEGORIZED_LABEL}
+              <p className="text-zinc-400 text-sm leading-relaxed mb-3 line-clamp-2">
+                {post.content}
+              </p>
+
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {post.tags.map(tag => (
+                    <span
+                      key={tag}
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleTag(tag);
+                      }}
+                      className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                      #{tag}
                     </span>
-                  )}
+                  ))}
                 </div>
-
-                <h2 className="text-lg font-bold text-zinc-100 mb-2">
-                  {post.title}
-                </h2>
-
-                <p className="text-zinc-400 text-sm leading-relaxed mb-3 line-clamp-2">
-                  {post.content}
-                </p>
-
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex flex-wrap gap-1.5">
-                    {post.tags.map(tag => (
-                      <span
-                        key={tag}
-                        onClick={e => {
-                          e.stopPropagation();
-                          toggleTag(tag);
-                        }}
-                        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-xs text-zinc-500 shrink-0">
-                    {post.date}
-                  </span>
-                </div>
+                <span className="text-xs text-zinc-500 shrink-0">
+                  {post.date}
+                </span>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>

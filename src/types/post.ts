@@ -2,7 +2,6 @@
 
 export interface Post {
   id: number;
-  categories: string[];
   tags: string[];
   title: string;
   content: string;

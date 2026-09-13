@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Post } from '../types/post';
-import { getCategoryStyle, UNCATEGORIZED_LABEL } from '../utils/categoryStyle';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -78,20 +77,6 @@ export default function PostDetail({ posts, onDeletePost }: PostDetailProps) {
 
       {/* 본문 아티클 영역 */}
       <article className="border-t border-zinc-800 pt-6">
-        <div className="flex flex-wrap gap-x-2 gap-y-1">
-          {post.categories.length > 0 ? (
-            post.categories.map(category => (
-              <span
-                key={category}
-                className={`text-sm font-bold ${getCategoryStyle(category).text}`}
-              >
-                {category}
-              </span>
-            ))
-          ) : (
-            <span className="text-sm font-bold text-zinc-500">{UNCATEGORIZED_LABEL}</span>
-          )}
-        </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 mt-2 mb-3 tracking-tight">
           {post.title}
         </h1>

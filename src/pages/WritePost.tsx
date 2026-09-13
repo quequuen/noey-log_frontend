@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import type { NewPostInput, Post } from '../types/post';
 import { MdEditor } from 'md-editor-rt';
 import { useImageUpload } from '../hooks/useImageUpload';
-import { extractCategoriesFromContent } from '../utils/parseCategories';
 import 'md-editor-rt/lib/style.css';
 
 interface WritePostProps {
@@ -23,12 +22,6 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
   const existingTags = useMemo(
     () => [...new Set(posts.flatMap(p => p.tags))].sort((a, b) => a.localeCompare(b, 'ko')),
     [posts]
-  );
-
-  // 본문 맨 위/아래 줄의 #해시태그를 미리보기용으로 감지 (에디터 내용 자체는 건드리지 않음)
-  const detectedCategories = useMemo(
-    () => extractCategoriesFromContent(content).categories,
-    [content]
   );
 
   const addTag = (raw: string) => {
@@ -52,12 +45,10 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) return alert('제목과 내용을 모두 채워주세요!');
 
-    const pending = tagInput.trim().replace(/^#/, '');
-    const finalTags = pending && !tags.includes(pending) ? [...tags, pending] : tags;
+    const pendingTag = tagInput.trim().replace(/^#/, '');
+    const finalTags = pendingTag && !tags.includes(pendingTag) ? [...tags, pendingTag] : tags;
 
-    const { categories, content: cleanedContent } = extractCategoriesFromContent(content);
-
-    onAddPost({ title, content: cleanedContent, tags: finalTags, categories });
+    onAddPost({ title, content, tags: finalTags });
     navigate('/');
   };
 
@@ -88,24 +79,6 @@ export default function WritePost({ posts, onAddPost }: WritePostProps) {
           <button onClick={handleSubmit} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-md transition-colors cursor-pointer shrink-0">
             출간하기
           </button>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap bg-zinc-800 border border-zinc-700 px-3 py-2 rounded-md">
-          <span className="text-sm font-bold text-zinc-400 shrink-0">카테고리</span>
-          {detectedCategories.length > 0 ? (
-            detectedCategories.map(category => (
-              <span
-                key={category}
-                className="px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-900/40 text-emerald-300"
-              >
-                #{category}
-              </span>
-            ))
-          ) : (
-            <span className="text-xs text-zinc-500">
-              본문 맨 위나 맨 아래 줄에 #카테고리 형태로 적으면 자동으로 분류돼요
-            </span>
-          )}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap bg-zinc-800 border border-zinc-700 px-3 py-2 rounded-md">
